@@ -5,6 +5,8 @@
  */
 package model;
 
+import com.db4o.Db4oEmbedded;
+import com.db4o.ObjectContainer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -264,6 +266,8 @@ public class Model implements Serializable {
             //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
         eq1.set10_id(clau2);
+
+//            db.store(eq1);
         Model.insertar(eq1, dades);
         Model.insertar(eq1, dades2);
         return eq1;
