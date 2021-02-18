@@ -5,8 +5,6 @@
  */
 package controller;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
@@ -46,7 +44,7 @@ public class Controller {
     private int filtroEquip = 0;
     private int filtroJugador = 0;
 
-    public Controller(Model m, View v) throws IOException, FileNotFoundException, ClassNotFoundException {
+    public Controller(Model m, View v) throws IOException, FileNotFoundException, ClassNotFoundException, SQLException {
         model = m;
         view = v;
         controlador();
@@ -54,12 +52,12 @@ public class Controller {
 
     public void carregarTaulaEquip() {
         if (filtroEquip == 0) {
-            tc = Utils.<Equip>loadTable(model.getDades(), view.getTaulaEquips(), Equip.class, true);
+            tc = Utils.<Equip>loadTable(model.getDades(), view.getTaulaEquips(), Equip.class, true, true);
             // view.getTaulaEquips().removeColumn(view.getTaulaEquips().getColumnModel().getColumn(8));
             Utils.<Equip>loadCombo(model.getDades(), view.getjComboBox1());
         } else if (filtroEquip == 1) {
             model.getDades2().addAll(model.getDades());
-            tc = Utils.<Equip>loadTable(model.getDades2(), view.getTaulaEquips(), Equip.class, true);
+            tc = Utils.<Equip>loadTable(model.getDades2(), view.getTaulaEquips(), Equip.class, true, true);
             //    view.getTaulaEquips().removeColumn(view.getTaulaEquips().getColumnModel().getColumn(8));
             Utils.<Equip>loadCombo(model.getDades(), view.getjComboBox1());
         }
@@ -75,8 +73,10 @@ public class Controller {
         }
     }
 
-    private void controlador() throws IOException, FileNotFoundException, ClassNotFoundException {
+    private void controlador() throws IOException, FileNotFoundException, ClassNotFoundException, SQLException {
         view.setVisible(true);
+        model.accessBD();
+        model.creacioTaules();
         model.llegirEquip();
         //Combo Puntuacio
         view.getPuntuacio().addItem("Puntuacio de menor a major");
@@ -189,201 +189,7 @@ public class Controller {
 
                 }
         );
-        view.getTaulaEquips().addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-                System.out.println(e.getKeyChar());
-                if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-                    TableColumnModel tcm = view.getTaulaEquips().getColumnModel();
-                    tcm.addColumn(tc);
-
-                    filaSel = view.getTaulaEquips().getSelectedRow();
-                    Equip obj = (Equip) view.getTaulaEquips().getValueAt(filaSel, tcm.getColumnCount() - 1);
-                    tcm.removeColumn(tc);
-                    Pattern pattern = null;
-                    pattern = Pattern.compile("^[a-zA-Z]*$");
-                    while (true) {
-                        String nom1 = view.getTaulaEquips().getValueAt(filaSel, 1).toString().replace(" ", "");
-                        if (nom1.isEmpty()) {
-                            JOptionPane.showMessageDialog(view, "No has introduit res, esta buit!!!");
-                            break;
-                        }
-                        Matcher matcher = pattern.matcher(nom1);
-                        boolean found = false;
-                        if (matcher.find()) {
-                            try {
-                                if (Integer.parseInt(view.getGolsEnContra().getText()) < 0 || Integer.parseInt(view.getGolsAfavor().getText()) < 0 || Integer.parseInt(view.getPartitsGuanyats().getText()) < 0 || Integer.parseInt(view.getPartitsPerduts().getText()) < 0 || Integer.parseInt(view.getPartitsEmpats().getText()) < 0 || Integer.parseInt(view.getJornada().getText()) < 0) {
-                                    JOptionPane.showMessageDialog(view, "Has introduit un numero negatiu!!!");
-                                    found = true;
-                                    break;
-                                }
-
-                                String nom = (String) view.getTaulaEquips().getValueAt(filaSel, 1);
-                                int golsEnContra = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 2).toString());
-                                int golsAfavor = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 3).toString());
-                                int partitsGuanyats = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 4).toString());
-                                int partitsPerduts = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 5).toString());
-                                int partitsEmpatats = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 6).toString());
-                                int punts = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 7).toString());
-                                int id = obj.get10_id();
-                                int jornada = Integer.parseInt(view.getTaulaEquips().getValueAt(filaSel, 8).toString());
-                                Model.updateEquip(nom, golsEnContra, golsAfavor, partitsGuanyats, partitsPerduts, partitsEmpatats, punts, jornada, obj.get1_nom());
-                                String nom11 = obj.get1_nom();
-                                obj.set1_nom(nom);
-                                obj.set2_golsEnContra(golsEnContra);
-                                obj.set3_golsAfavor(golsAfavor);
-                                obj.set4_partitsGuanyats(partitsGuanyats);
-                                obj.set5_partitsPerduts(partitsPerduts);
-                                obj.set6_partitsEmpatats(partitsEmpatats);
-                                obj.set7_punts(punts);
-                                obj.set8_jornada(jornada);
-                                carregarTaulaEquip();
-                                carregarTaulaJugador();
-                            } catch (NumberFormatException exception) {
-                                JOptionPane.showMessageDialog(view, "On tenies d'introduir un numero has introduit lletres o caracters o no has introduit res");
-                                carregarTaulaEquip();
-                                carregarTaulaJugador();
-                            }
-                            found = true;
-                            carregarTaulaJugador();
-                            carregarTaulaEquip();
-
-                            //  break;
-                        }
-                        if (!found) {
-                            JOptionPane.showMessageDialog(view, "No has introduit un nom de equip correcte has introduit algo mes apart de lletres");
-                            carregarTaulaEquip();
-                            carregarTaulaJugador();
-                            // break;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            public void keyPressed(KeyEvent e) {
-
-            }
-        });
-
-        view.getTaulaJugadors().addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-                System.out.println(e.getKeyChar());
-                if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-                    String[] a = new String[1];
-                    a[0] = view.getTaulaJugadors().getValueAt(filaSel2, 3).toString();
-
-                    String[] a1 = {"Defensa"};
-                    String[] b = {"Delanter"};
-                    String[] c = {"Porter"};
-                    String[] d = {"Mitg camp"};
-                    String[] a2 = {"defensa"};
-                    String[] b2 = {"delanter"};
-                    String[] c2 = {"porter"};
-                    String[] d2 = {"mitg camp"};
-                    if (Arrays.compare(a, a1) == 0 || Arrays.compare(a, b) == 0 || Arrays.compare(a, c) == 0 || Arrays.compare(a, d) == 0 || Arrays.compare(a, a2) == 0 || Arrays.compare(a, b2) == 0 || Arrays.compare(a, c2) == 0 || Arrays.compare(a, d2) == 0) {
-                        Pattern pattern = null;
-                        pattern = Pattern.compile("^[a-zA-Z]*$");
-                        while (true) {
-                            String text = view.getTaulaJugadors().getValueAt(filaSel2, 1).toString().replace(" ", "");
-                            if (text.isEmpty()) {
-                                JOptionPane.showMessageDialog(view, "No has introduit res, esta buit!!!");
-                                break;
-                            }
-                            Matcher matcher = pattern.matcher(text);
-                            boolean found = false;
-                            if (matcher.find()) {
-
-                                found = true;
-                                TableColumnModel tcm2 = view.getTaulaJugadors().getColumnModel();
-                                tcm2.addColumn(tc2);
-                                Jugador obj = (Jugador) view.getTaulaJugadors().getValueAt(filaSel2, tcm2.getColumnCount() - 1);
-                                TableColumnModel tcm20 = view.getTaulaEquips().getColumnModel();
-                                tcm20.addColumn(tc);
-                                tcm20.removeColumn(tc);
-                                tcm2.removeColumn(tc2);
-                                try {
-                                    String nom = (String) view.getTaulaJugadors().getValueAt(filaSel2, 1);
-                                    String equip = view.getTaulaJugadors().getValueAt(filaSel2, 2).toString();
-                                    String posicio = view.getTaulaJugadors().getValueAt(filaSel2, 3).toString();
-                                    if (Integer.parseInt(view.getTaulaJugadors().getValueAt(filaSel2, 4).toString()) < 0 || Integer.parseInt(view.getTaulaJugadors().getValueAt(filaSel2, 5).toString()) < 0) {
-                                        JOptionPane.showMessageDialog(view, "Has introduit un numero negatiu!!!");
-                                        found = true;
-                                        break;
-                                    }
-                                    int gols = Integer.parseInt(view.getTaulaJugadors().getValueAt(filaSel2, 4).toString());
-                                    int partitsJugats = Integer.parseInt(view.getTaulaJugadors().getValueAt(filaSel2, 5).toString());
-                                    int id = Integer.parseInt(view.getTaulaJugadors().getValueAt(filaSel2, 0).toString());
-                                    Equip obj1 = null;
-                                    for (Equip e1 : Model.getDades()) {
-                                        if (e1.get10_id() == id) {
-                                            obj1 = e1;
-                                        }
-                                    }
-                                    Model.updateJugador(obj1, obj.get1_nomcognoms(), nom, equip, posicio, gols, partitsJugats);
-                                    System.out.println("xivato id");
-                                    System.out.println(id);
-                                    obj.set0_idequip(id);
-                                    obj.set1_nomcognoms(nom);
-                                    String[] a3 = new String[1];
-                                    a3[0] = posicio;
-                                    obj.set3_posicio(a3);
-                                    obj.set4_gols(gols);
-                                    obj.set5_partits(partitsJugats);
-
-                                    if (obj.get2_equip() == null) {
-                                        obj.set2_equip(obj1);
-                                        obj.get2_equip().get9_jug().add(obj);
-                                    } else if (obj.get2_equip() != obj1) {
-                                        obj.get2_equip().get9_jug().remove(obj);
-                                        obj.set2_equip(null);
-                                        obj.set2_equip(obj1);
-                                        obj.get2_equip().get9_jug().add(obj);
-                                    }
-                                    carregarTaulaEquip();
-                                    carregarTaulaJugador();
-
-                                } catch (NumberFormatException exception) {
-                                    JOptionPane.showMessageDialog(view, "On tenies d'introduir un numero has introduit lletres o caracters o no has introduit res");
-                                    found = true;
-                                    carregarTaulaJugador();
-                                    carregarTaulaEquip();
-                                    break;
-                                }
-                                carregarTaulaJugador();
-                                carregarTaulaEquip();
-                                filaSel2 = -1;
-                                break;
-                            }
-                            if (!found) {
-                                JOptionPane.showMessageDialog(view, "No has introduit un nom de jugador correcte has introduit algo mes apart de lletres");
-                                carregarTaulaJugador();
-                                carregarTaulaEquip();
-                                break;
-                            }
-                            break;
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(view, "No has introduit una posicio correcta te de ser Defensa o Delanter o Porter o mitg camp");
-                        carregarTaulaJugador();
-                        carregarTaulaEquip();
-                    }
-                }
-            }
-
-            public void keyPressed(KeyEvent e) {
-
-            }
-        });
         view.getTaulaEquips().addMouseListener(
                 new MouseAdapter() {
             @Override

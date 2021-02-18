@@ -8,6 +8,7 @@ package mvcgui;
 import controller.Controller;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import model.Model;
 import view.View;
 
@@ -20,7 +21,7 @@ public class MVCGUI {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException, FileNotFoundException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, FileNotFoundException, ClassNotFoundException, SQLException {
         // TODO code application logic here        
          new Controller(new Model(),new View());
     }

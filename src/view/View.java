@@ -162,11 +162,11 @@ public class View extends javax.swing.JFrame {
         jLabel15.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel15.setText("OPCIONS");
 
-        botoEditar.setIcon(new javax.swing.ImageIcon("/home/davidmarsal/NetBeansProjects/MP3UF5Projecte/modify.png")); // NOI18N
+        botoEditar.setText("MODIFICAR");
 
-        afegirEquip.setIcon(new javax.swing.ImageIcon("/home/davidmarsal/NetBeansProjects/MP3UF5Projecte/add.png")); // NOI18N
+        afegirEquip.setText("AFEGIR");
 
-        eliminarEquip.setIcon(new javax.swing.ImageIcon("/home/davidmarsal/NetBeansProjects/MP3UF5Projecte/remove.png")); // NOI18N
+        eliminarEquip.setText("ELIMINAR");
 
         jLabel12.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel12.setText("FILTRAR");
@@ -352,11 +352,11 @@ public class View extends javax.swing.JFrame {
         jLabel14.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel14.setText("OPCIONS");
 
-        afegirJugador.setIcon(new javax.swing.ImageIcon("/home/davidmarsal/NetBeansProjects/MP3UF5Projecte/add.png")); // NOI18N
+        afegirJugador.setText("AFEGIR");
 
-        eliminarJugador.setIcon(new javax.swing.ImageIcon("/home/davidmarsal/NetBeansProjects/MP3UF5Projecte/remove.png")); // NOI18N
+        eliminarJugador.setText("ELIMINAR");
 
-        editarJugador.setIcon(new javax.swing.ImageIcon("/home/davidmarsal/NetBeansProjects/MP3UF5Projecte/modify.png")); // NOI18N
+        editarJugador.setText("MODIFICAR");
 
         jLabel16.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel16.setText("FILTRAR");
@@ -390,11 +390,12 @@ public class View extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel8)
                                     .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(40, 40, 40)
-                                        .addComponent(afegirJugador)))
-                                .addGap(93, 93, 93)
+                                        .addComponent(jLabel8)
+                                        .addGap(108, 108, 108))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                        .addComponent(eliminarJugador)
+                                        .addGap(18, 18, 18)))
                                 .addComponent(editarJugador))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel18)
@@ -414,10 +415,11 @@ public class View extends javax.swing.JFrame {
                                             .addComponent(golsJugador, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                                             .addGroup(jPanel1Layout.createSequentialGroup()
                                                 .addGap(6, 6, 6)
-                                                .addComponent(jCheckBox2)))
+                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                    .addComponent(afegirJugador)
+                                                    .addComponent(jCheckBox2))))
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(eliminarJugador)
                                             .addComponent(partitsJugador, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                                             .addComponent(jLabel14)
                                             .addComponent(jLabel16))))
@@ -471,9 +473,10 @@ public class View extends javax.swing.JFrame {
                         .addComponent(jCheckBox2)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(editarJugador, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(eliminarJugador, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(afegirJugador, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(editarJugador, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(eliminarJugador, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(afegirJugador, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addGap(11, 11, 11)
                 .addComponent(jLabel16)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)

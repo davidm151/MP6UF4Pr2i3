@@ -5,10 +5,7 @@
  */
 package model;
 
-import com.db4o.Db4oEmbedded;
-import com.db4o.ObjectContainer;
-import java.io.File;
-import java.io.FileInputStream;
+import java.beans.PropertyVetoException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
@@ -20,6 +17,7 @@ import view.View;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javabeans.NewBean;
 
 /**
  *
@@ -32,10 +30,7 @@ public class Model implements Serializable {
     private static Collection<Equip> dades2 = new TreeSet<>(new EquipOrdenaPuntuacio());
     private static Collection<Jugador> dadesJugador = new TreeSet<>();
     private static Collection<Jugador> dadesJugador2 = new TreeSet<>(new JugadorOrdena());
-    private static Properties properties = new Properties();
-    private static Statement statement = null;
-    private static Connection conn;
-    private static PreparedStatement preparedStatement = null;
+    private static NewBean p = new NewBean();
 
     public static Collection<Equip> getDades() {
         return dades;
@@ -56,18 +51,18 @@ public class Model implements Serializable {
     public Model() {
     }
 
+    public void accessBD() throws FileNotFoundException, IOException, SQLException {
+        try {
+            p.setPropsDB("config.properties");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void llegirEquip() throws IOException {
         try {
-            properties.load(new FileInputStream(new File("config.properties")));
-            System.out.println(properties.get("driver"));
-            String URL = (String) properties.get("url");
-            String USER = (String) properties.get("usuari");
-            String PASS = (String) properties.get("password");
-            conn = DriverManager.getConnection(URL, USER, PASS);
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            resultSet = statement
-                    .executeQuery("select * from equip");
+            p.setSelect("select * from equip");
+            ResultSet resultSet = p.getRs();
             Equip obj;
             while (resultSet.next()) {
                 String NomEquip = resultSet.getString("nom");
@@ -82,59 +77,28 @@ public class Model implements Serializable {
                 obj = Model.obtenirEquip(NomEquip, Integer.parseInt(GolsEnContra), Integer.parseInt(GolsAfavor), Integer.parseInt(PartitsGuanyats), Integer.parseInt(PartitsPerduts), Integer.parseInt(PartitsEmpats), Integer.parseInt(PuntsEquip), Integer.parseInt(Jornada));
                 obj.set10_id(id);
                 Model.<Equip>insertar(obj, Model.getDades());
-
                 for (Jugador eq : obj._9_jug) {
                     Model.<Jugador>insertar(eq, Model.getDadesJugador());
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     public void llegirJugador() throws IOException {
         try {
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            resultSet = statement
-                    .executeQuery("select * from jugador");
+            Equip obj2 = null;
+            p.setSelect("select * from jugador");
             Jugador obj = null;
+            ResultSet resultSet = p.getRs();
             while (resultSet.next()) {
                 String NomJugador = resultSet.getString("nom");
                 int clau = resultSet.getInt("id_equip");
                 Equip eq11 = null;
-                preparedStatement = conn
-                        .prepareStatement("select * from equip WHERE id=?");
-                preparedStatement.setInt(1, clau);
-                ResultSet rs = preparedStatement.executeQuery();
                 Equip obj1 = null;
-                while (rs.next()) {
-                    String NomEquip = rs.getString("nom");
-                    String GolsEnContra = rs.getString("gols_en_contra");
-                    String GolsAfavor = rs.getString("gols_afavor");
-                    String PartitsGuanyats = rs.getString("partits_guanyats");
-                    String PartitsPerduts = rs.getString("partits_perduts");
-                    String PartitsEmpats = rs.getString("partits_empatats");
-                    String PuntsEquip = rs.getString("punts");
-                    String Jornada = rs.getString("jornada");
-                    //  Model.dades.contains(obj1);
-                    for (Equip value : Model.dades) {
-                        System.out.println(value.get1_nom());
-                        //  System.out.println(NomEquip);
-                        String x = value.get1_nom();
-                        if (x.equals(NomEquip)) {
-                            obj1 = value;
-                        }
-                    }
-                    // obj1 = Model.obtenirEquip(NomEquip, Integer.parseInt(GolsEnContra), Integer.parseInt(GolsAfavor), Integer.parseInt(PartitsGuanyats), Integer.parseInt(PartitsPerduts), Integer.parseInt(PartitsEmpats), Integer.parseInt(PuntsEquip), Integer.parseInt(Jornada));
-                    //  Iterable<Equip> ts = null;
-
-                }
                 String[] a = new String[1];
                 a[0] = resultSet.getString("posicio");
                 String Gols = resultSet.getString("gols");
@@ -142,7 +106,12 @@ public class Model implements Serializable {
                 System.out.println(NomJugador);
                 int id = resultSet.getInt("id_equip");
                 obj = Model.obtenirJugador2(NomJugador, obj1, a, Integer.parseInt(Gols), Integer.parseInt(PartitsJugats));
-
+                for (Equip e1 : Model.getDades()) {
+                    if (e1.get10_id() == id) {
+                        obj2 = e1;
+                    }
+                }
+                obj.set2_equip(obj2);
                 obj.set0_idequip(id);
                 for (Equip value : Model.dades) {
                     try {
@@ -152,11 +121,22 @@ public class Model implements Serializable {
                     } catch (Exception ex) {
                     }
                 }
-                // obj1._9_jug.add(obj);
-
                 Model.<Jugador>insertar(obj, Model.getDadesJugador());
             }
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static void creacioTaules() {
+        try {
+            p.setCreatetable("CREATE DATABASE IF NOT EXISTS equip;");
+            p.setCreatetable("USE equip;");
+            p.setCreatetable("CREATE TABLE IF NOT EXISTS equip (nom varchar(255) DEFAULT NULL,gols_en_contra int DEFAULT NULL,gols_afavor int DEFAULT NULL,partits_guanyats int DEFAULT NULL,partits_perduts int DEFAULT NULL,partits_empatats int DEFAULT NULL,punts int DEFAULT NULL,jornada int DEFAULT NULL,ID int NOT NULL AUTO_INCREMENT,PRIMARY KEY (ID),UNIQUE KEY nom (nom));");
+            p.setCreatetable("CREATE TABLE IF NOT EXISTS jugador (ID int NOT NULL AUTO_INCREMENT,nom varchar(255) DEFAULT NULL,equip varchar(255) DEFAULT NULL,posicio varchar(255) DEFAULT NULL,gols int DEFAULT NULL,partits_jugats int DEFAULT NULL,id_equip int DEFAULT NULL,PRIMARY KEY (ID),UNIQUE KEY nom (nom))");
+        } catch (PropertyVetoException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -168,15 +148,10 @@ public class Model implements Serializable {
     public static void borrarEquip(Equip eq1) {
         dades.remove(eq1);
         dades2.remove(eq1);
+        String x = "'";
         try {
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("DELETE FROM equip WHERE nom=? ;");
-            preparedStatement.setString(1, eq1.get1_nom());
-
-            preparedStatement.executeUpdate();
-        } catch (SQLException ex) {
+            p.setDelete("DELETE FROM equip WHERE nom=" + x + eq1.get1_nom() + x + ";");
+        } catch (PropertyVetoException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
         for (Jugador j : eq1.get9_jug()) {
@@ -187,15 +162,10 @@ public class Model implements Serializable {
     public static void borrarJugador(Jugador j1) {
         dadesJugador.remove(j1);
         dadesJugador2.remove(j1);
+        String x = "'";
         try {
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("DELETE FROM jugador WHERE nom=? ;");
-            preparedStatement.setString(1, j1.get1_nomcognoms());
-
-            preparedStatement.executeUpdate();
-        } catch (SQLException ex) {
+            p.setDelete("DELETE FROM jugador WHERE nom=" + x + j1.get1_nomcognoms() + x + ";");
+        } catch (PropertyVetoException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (j1.get2_equip() != null) {
@@ -228,46 +198,25 @@ public class Model implements Serializable {
                 _7_puntsEquip,
                 _8_jornada
         );
-        
+        String x = "'";
         try {
-            // conn.setAutoCommit(false);
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("INSERT INTO equip(nom,gols_en_contra,gols_afavor,partits_guanyats,partits_perduts,partits_empatats,punts,jornada) VALUES (?,?,?,?,?,?,?,?) ;");
-            preparedStatement.setString(1, eq1.get1_nom());
-            preparedStatement.setInt(2, eq1.get2_golsEnContra());
-            preparedStatement.setInt(3, eq1.get3_golsAfavor());
-            preparedStatement.setInt(4, eq1.get4_partitsGuanyats());
-            preparedStatement.setInt(5, eq1.get5_partitsPerduts());
-            preparedStatement.setInt(6, eq1.get6_partitsEmpatats());
-            preparedStatement.setInt(7, eq1.get7_punts());
-            preparedStatement.setInt(8, eq1.get8_jornada());
-            preparedStatement.executeUpdate();
-            System.out.println("hola");
-        } catch (SQLException e) {
-
+            p.setInsert("INSERT INTO equip(nom,gols_en_contra,gols_afavor,partits_guanyats,partits_perduts,partits_empatats,punts,jornada) VALUES (" + x + eq1.get1_nom() + x + "," + eq1.get2_golsEnContra() + "," + eq1.get3_golsAfavor() + "," + eq1.get4_partitsGuanyats() + "," + eq1.get5_partitsPerduts() + "," + eq1.get6_partitsEmpatats() + "," + eq1.get7_punts() + "," + eq1.get8_jornada() + ")" + ";");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
-        int clau2 = 0;
         try {
-
-            statement = conn.createStatement();
-            // ResultSet resultSet1 = null;
-            preparedStatement = conn
-                    .prepareStatement("select * from equip WHERE nom=?");
-            preparedStatement.setString(1, eq1.get1_nom());
-            ResultSet rs = preparedStatement.executeQuery();
-            Equip obj1 = null;
-            while (rs.next()) {
-                clau2 = rs.getInt("id");
-
+            p.setSelect("select * from equip WHERE nom=" + x + eq1.get1_nom() + x + ";");
+            ResultSet result = p.getRs();
+            int clau2 = 0;
+            while (result.next()) {
+                clau2 = result.getInt("id");
             }
-        } catch (Exception ex) {
-            //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+            eq1.set10_id(clau2);
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
-        eq1.set10_id(clau2);
-
-//            db.store(eq1);
         Model.insertar(eq1, dades);
         Model.insertar(eq1, dades2);
         return eq1;
@@ -282,54 +231,23 @@ public class Model implements Serializable {
                 _5_partitsJugador
         );
         int clau2 = 0;
+        String x = "'";
         try {
-
-            statement = conn.createStatement();
-            // ResultSet resultSet1 = null;
-            preparedStatement = conn
-                    .prepareStatement("select * from equip WHERE nom=?");
-            preparedStatement.setString(1, jug1.get2_equip().toString());
-            ResultSet rs = preparedStatement.executeQuery();
-            Equip obj1 = null;
-            while (rs.next()) {
-                clau2 = rs.getInt("id");
-
+            p.setSelect("select * from equip WHERE nom=" + x + jug1.get2_equip().toString() + x + ";");
+            ResultSet result = p.getRs();
+            while (result.next()) {
+                clau2 = result.getInt("id");
             }
-        } catch (Exception ex) {
-            //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("INSERT INTO jugador(nom,equip,posicio,gols,partits_jugats,id_equip) VALUES (?,?,?,?,?,?) ;");
-            preparedStatement.setString(1, jug1.get1_nomcognoms());
-            preparedStatement.setString(2, jug1.get2_equip().toString());
-            preparedStatement.setString(3, jug1.get3_posicio());
-            preparedStatement.setInt(4, jug1.get4_gols());
-            preparedStatement.setInt(5, jug1.get5_partits());
-            preparedStatement.setInt(6, clau2);
-            preparedStatement.executeUpdate();
-            //   conn.close();
-        } catch (Exception ex) {
-            //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+            p.setInsert("INSERT INTO jugador(nom,equip,posicio,gols,partits_jugats,id_equip) VALUES (" + x + jug1.get1_nomcognoms() + x + "," + x + jug1.get2_equip().toString() + x + "," + x + jug1.get3_posicio() + x + "," + jug1.get4_gols() + "," + jug1.get5_partits() + "," + clau2 + ")" + ";");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
-        try {
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("select * from jugador WHERE nom=?;");
-            preparedStatement.setString(1, jug1.get1_nomcognoms());
-            resultSet = preparedStatement.executeQuery();
-            //   conn.close();
-            while (resultSet.next()) {
-                int id = resultSet.getInt("ID");
-                jug1.set0_idequip(id);
-            }
-        } catch (Exception ex) {
-            //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //  int id = 0;
         jug1.set0_idequip(clau2);
         Model.insertar(jug1, dadesJugador);
         Model.insertar(jug1, dadesJugador);
@@ -351,95 +269,64 @@ public class Model implements Serializable {
 
     public static void updateJugador(Equip eq1, String nom, String nomActualitzat, String nomEquip, String posicio, int gols, int partits) {
         int clau2 = 0;
+        String x = "'";
         try {
-
-            statement = conn.createStatement();
-            preparedStatement = conn
-                    .prepareStatement("select * from equip WHERE nom=?");
-            preparedStatement.setString(1, eq1.get1_nom());
-            ResultSet rs = preparedStatement.executeQuery();
-            Equip obj1;
-            while (rs.next()) {
-                clau2 = rs.getInt("id");
+            p.setSelect("select * from equip WHERE nom=" + x + eq1.get1_nom() + x + ";");
+            ResultSet result = p.getRs();
+            while (result.next()) {
+                clau2 = result.getInt("id");
             }
-        } catch (Exception ex) {
-            //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         try {
-            statement = conn.createStatement();
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("UPDATE jugador SET nom = ?, equip = ?,posicio=?,gols=?,partits_jugats=?,id_equip=? WHERE nom=?;");
-            preparedStatement.setString(1, nomActualitzat);
-            preparedStatement.setString(2, nomEquip);
-            preparedStatement.setString(3, posicio);
-            preparedStatement.setInt(4, gols);
-            preparedStatement.setInt(5, partits);
-            preparedStatement.setInt(6, clau2);
-            preparedStatement.setString(7, nom);
-            preparedStatement.executeUpdate();
-            //   conn.close();
-        } catch (Exception ex) {
-            //Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+            p.setUpdate("UPDATE jugador SET nom = " + x + nomActualitzat + x + ",equip =" + x + nomEquip + x + ",posicio=" + x + posicio + x + ",gols=" + gols + ",partits_jugats=" + partits + ",id_equip=" + clau2 + " WHERE nom=" + x + nom + x + ";");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         Jugador obj1;
         for (Jugador j1 : Model.dadesJugador) {
             if (j1.get1_nomcognoms().equals(nomActualitzat)) {
                 j1.set0_idequip(clau2);
-                //e.set1_nom(dada);
             }
         }
 
     }
 
     public static void updateEquip(String nomActualitzat, int gols_en_contra, int gols_afavor, int partits_guanyats, int partits_perduts, int partits_empatats, int punts, int jornada, String nom) {
-
+        String x = "'";
         try {
-            conn.setAutoCommit(false);
-            statement = conn.createStatement();
-            preparedStatement = conn
-                    .prepareStatement("UPDATE equip SET nom = ?, gols_en_contra = ?,gols_afavor=?,partits_guanyats=?,partits_perduts=?,partits_empatats=?,punts=?,jornada=? WHERE nom=?;");
-            preparedStatement.setString(1, nomActualitzat);
-            preparedStatement.setInt(2, gols_en_contra);
-            preparedStatement.setInt(3, gols_afavor);
-            preparedStatement.setInt(4, partits_guanyats);
-            preparedStatement.setInt(5, partits_perduts);
-            preparedStatement.setInt(6, partits_empatats);
-            preparedStatement.setInt(7, punts);
-            preparedStatement.setInt(8, jornada);
-            preparedStatement.setString(9, nom);
-            preparedStatement.executeUpdate();
-            int clau2 = 0;
-            preparedStatement = conn
-                    .prepareStatement("select * from equip WHERE nom=?");
-            preparedStatement.setString(1, nomActualitzat);
-            ResultSet rs = preparedStatement.executeQuery();
-            Equip obj1;
-            while (rs.next()) {
-                clau2 = rs.getInt("id");
+            p.setUpdate("UPDATE equip SET nom = " + x + nomActualitzat + x + ", gols_en_contra =" + gols_en_contra + ",gols_afavor=" + gols_afavor + ",partits_guanyats=" + partits_guanyats + ",partits_perduts=" + partits_perduts + ",partits_empatats=" + partits_empatats + ",punts=" + punts + ",jornada=" + jornada + " WHERE nom=" + x + nom + x + ";");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        int clau2 = 0;
+        try {
+            p.setSelect("select * from equip WHERE nom=" + x + nomActualitzat + x + ";");
+            ResultSet result = p.getRs();
+            while (result.next()) {
+                clau2 = result.getInt("id");
             }
-            ResultSet resultSet = null;
-            preparedStatement = conn
-                    .prepareStatement("UPDATE jugador SET equip = ? WHERE id_equip=?;");
-            preparedStatement.setString(1, nomActualitzat);
-            preparedStatement.setInt(2, clau2);
-            preparedStatement.executeUpdate();
-            conn.commit();
-        } catch (SQLException e) { 
-            System.out.println(e.toString());
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ex) {
-                    System.out.println(ex.toString());
-                }
-            }
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            p.setUpdate("UPDATE jugador SET equip =" + x + nomActualitzat + x + " WHERE id_equip=" + clau2 + ";");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
     public static void tancarConn() throws SQLException {
-        conn.close();
+        try {
+            p.setClose("close");
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
 
