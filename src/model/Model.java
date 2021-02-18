@@ -211,6 +211,7 @@ public class Model implements Serializable {
             while (result.next()) {
                 clau2 = result.getInt("id");
             }
+          //  System.out.println(clau2);
             eq1.set10_id(clau2);
         } catch (PropertyVetoException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
@@ -231,13 +232,22 @@ public class Model implements Serializable {
                 _5_partitsJugador
         );
         int clau2 = 0;
-        String x = "'";
+       String x = "'";
+       System.out.println(jug1.get2_equip().toString());
         try {
-            p.setSelect("select * from equip WHERE nom=" + x + jug1.get2_equip().toString() + x + ";");
+            //Este select aqui lo faig perque tinc el problema que et vaig ensenyar a classe
+            //que si creo un equip i seguidament creo un jugador amb aquell equip no funciona
+            //ja que lo p.setSelect es lo mateix al metode obtenirEquip2 i al metode obtenirJugador.
+            //per tant no s'executa el vetoableChange.
+            p.setSelect("select * from equip;");
+            //Este es lo slect correcte
+             p.setSelect("select * from equip WHERE nom=" + x + jug1.get2_equip().toString() + x + ";");
             ResultSet result = p.getRs();
             while (result.next()) {
                 clau2 = result.getInt("id");
             }
+            System.out.println("ESTIC ACCEDINT A LA CLAU2");
+            System.out.println(clau2);
         } catch (PropertyVetoException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
@@ -248,6 +258,7 @@ public class Model implements Serializable {
         } catch (PropertyVetoException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println(clau2);
         jug1.set0_idequip(clau2);
         Model.insertar(jug1, dadesJugador);
         Model.insertar(jug1, dadesJugador);
